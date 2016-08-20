@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Under My Thumb - Chore Tracking</title>
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .green {
+      color: green;
+    }
+
+    .red {
+      color: red;
+    }
+
+    .spinner {
+      background-image: url('images/spinner.gif');
+      height: 36px;
+      width: 36px;
+      margin: auto;
+    }
+
+    .tri-modal-overlay {
+      position: fixed;
+      top: 0px;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+      z-index: 1050;
+      background-color: black;
+      opacity: 0.3;
+    }
+
+    .tri-modal-dialog {
+      display: none;
+      left: 0;
+      right: 0;
+      top: 20px;
+      width: 600px;
+      margin: auto;
+      background-color: white;
+      position: fixed;
+      z-index: 1052;
+      border-radius: 5px;
+      box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.55);
+    }
+
+      .tri-modal-dialog.tri-modal-open {
+        display: block;
+      }
+
+    .tri-modal-body {
+      padding: 10px;
+    }
+
+    .tri-modal-buttons {
+      float: right;
+      padding: 10px;
+    }
+
+    .form-horizontal {
+      padding: 15px;
+    }
+
+    .actions {
+      width: 50px;
+    }
+    
+    .appErrorContainer {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1060;
+    }
+    .appError {
+      position: relative;
+      padding: 10px;
+      background-color: #f2dede;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      width: 200px;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Under My Thumb</a>
+    </div>
+  </nav>
+
+  <div class="row">
+    <div class="col-xs-10 col-xs-offset-1">
+      <div class="btn-group" id="panelSelection" style="margin-bottom: 10px">
+        <button type="button" class="btn btn-default" data-tri-panel="userPanel">Children</button>
+        <button type="button" class="btn btn-default" data-tri-panel="chorePanel">Chores</button>
+        <button type="button" class="btn btn-default" data-tri-panel="thisWeekPanel">Assignments</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row" id="userPanel" style="display:none">
+    <div class="col-xs-10 col-xs-offset-1">
+      <div class="panel panel-info">
+        <div class="panel-heading">Children <span tri-click="addUserClick" class="glyphicon glyphicon-plus green pull-right"></span></div>
+        <div class="panel-body">
+          Manage list of children with chores.
+        </div>
+        <div class="table-responsive">
+          <div tri-modal="showDeleteModal" class="tri-modal-dialog">
+            <div class="tri-modal-body">
+              Are you sure, you want to delete?
+            </div>
+            <div class="tri-modal-buttons">
+              <button id="confirmUserDeletion" class="btn" tri-click="deleteModalOkClick">Ok</button>
+              <button id="cancelUserDeletion" class="btn" tri-click="deleteModalCancelClick">Cancel</button>
+            </div>
+          </div>
+
+          <div tri-modal="showAddEditModal" class="tri-modal-dialog">
+            <div class="tri-modal-body">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="userName" class="control-label col-sm-2">Name</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" tri-value="addEditUserNameValue" />
+                    <span class="error" style="display:none" tri-show="showUserNameValidationError">User name is required and cannot be whitespace.</span>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="tri-modal-buttons">
+              <button id="addEditUserOk" class="btn" tri-click="addEditModalOkClick">Ok</button>
+              <button id="addEditUserCancel" class="btn" tri-click="addEditModalCancelClick">Cancel</button>
+            </div>
+          </div>
+          <div tri-modal="showBlockUserModal" class="tri-modal-dialog">
+            <div class="tri-modal-body">
+              Completing operation...
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <table tri-show="showGrid" class="table table-bordered table-striped">
+            <thead>
+              <tr><th>Name</th><th class="actions">Actions</th></tr>
+            </thead>
+            <tbody tri-repeat="users">
+              <tr>
+                <td tri-text="Name"></td>
+                <td>
+                  <span tri-click="editUserClick" class="glyphicon glyphicon-pencil green editUser"></span>
+                  <span tri-click="deleteUserClick" class="glyphicon glyphicon-remove red deleteUser"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div tri-show="showSpinner" class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" id="chorePanel" style="display: none">
+    <div class="col-xs-10 col-xs-offset-1">
+      <div class="panel panel-info">
+        <div id="chorePanelHeader" class="panel-heading">Chores <span tri-click="addChoreClick" class="glyphicon glyphicon-plus green pull-right"></span></div>
+        <div class="panel-body">
+          Manage chore assignments for each child.
+        </div>
+        <div class="table-responsive">
+          <table id="choreTable" class="table table-bordered table-striped" style="display: none">
+            <thead>
+              <tr>
+                <th>Child</th>
+                <th>Description</th>
+                <th>Assigned Days</th>
+                <th class="actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody tri-repeat="chores">
+              <tr>
+                <td tri-text="ChildName"></td>
+                <td tri-text="Description"></td>
+                <td tri-text="AssignedDaysFormatted"></td>
+                <td>
+                  <span tri-click="editChoreClick" class="glyphicon glyphicon-pencil green editChore"></span>
+                  <span tri-click="deleteChoreClick" class="glyphicon glyphicon-remove red deleteChore"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div id="choreTableSpinner" class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="confirmDeleteChoreModal" class="tri-modal-dialog">
+    <div class="tri-modal-body">
+      Are you sure, you want to delete?
+    </div>
+    <div class="tri-modal-buttons">
+      <button class="btn okButton">Ok</button>
+      <button class="btn cancelButton">Cancel</button>
+    </div>
+  </div>
+  <div id="addEditChoreModal" class="tri-modal-dialog">
+    <div class="tri-modal-body">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <label for="choreChild" class="control-label col-sm-2">Child</label>
+          <div class="col-sm-10">
+            <select class="form-control" id="choreChild" tri-repeat="users">
+              <option tri-attr='{"prop": "value", "data": "Id"}' tri-text="Name"></option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="choreDescription" class="control-label col-sm-2">Description</label>
+          <div class="col-sm-10">
+            <input type="text" val-required="true" val-nowhitespace="true" class="form-control" id="choreDescription" />
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="atleastonemsg col-sm-offset-2" data-for="day">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnSunday" val-atleastone="day">
+                Sunday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnMonday" val-atleastone="day">
+                Monday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnTuesday" val-atleastone="day">
+                Tuesday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnWednesday" val-atleastone="day">
+                Wednesday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnThursday" val-atleastone="day">
+                Thursday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnFriday" val-atleastone="day">
+                Friday
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" value="" id="choreOnSaturday" val-atleastone="day">
+                Saturday
+              </label>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="tri-modal-buttons">
+      <button class="btn okButton">Ok</button>
+      <button class="btn cancelButton">Cancel</button>
+    </div>
+  </div>
+
+  <div class="row" id="thisWeekPanel">
+    <div class="col-xs-10 col-xs-offset-1">
+      <div class="panel panel-info">
+        <div class="panel-heading">Assignments</div>
+        <div class="panel-body">
+          <select class="form-control" id="thisWeekUserSelection" tri-repeat="users" style="max-width: 400px;">
+            <option tri-attr='{"prop": "value", "data": "Id"}' tri-text="Name"></option>
+          </select>
+          Chores this week.
+        </div>
+        <div class="table-responsive">
+          <table id="thisWeekTable" class="table table-bordered table-striped" style="display: none">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Day</th>
+                <th>Completed?</th>
+              </tr>
+            </thead>
+            <tbody tri-repeat="thisWeekChores">
+              <tr tri-class='{ "prop": "Overdue", "className": "danger"}'>
+                <td tri-text="Description"></td>
+                <td tri-text="DayFormatted">Monday</td>
+                <!-- <td tri-attr='[{ "prop": "data-id", "data": "_Id"}, {"prop": "data-completed", "data": "Completed"}]'><span tri-show="Completed" class="glyphicon glyphicon-ok green"></span></td>-->
+                <!-- EX-3 Uncomment, comment out line above -->
+                <td tri-click="toggle"><span tri-show="Completed" class="glyphicon glyphicon-ok green"></span></td>
+                <!-- EX-3 END -->
+              </tr>
+            </tbody>
+          </table>
+          <div id="thisWeekTableSpinner" class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="waitModal" class="tri-modal-dialog">
+    <div class="tri-modal-body">
+      Completing operation...
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script src="scripts/jquery-2.2.2.min.js"></script>
+  <script src="scripts/choreUtils.js"></script>
+  <script src="scripts/twoWayDataBinding.js"></script>
+  <script src="scripts/usersView.js"></script>
+  <script src="scripts/choresView.js"></script>
+  <script src="scripts/thisWeekView.js"></script>
+  <script src="scripts/choreNav.js"></script>
+  <script src="scripts/choreValidation.js"></script>
+  <script src="scripts/choreMain.js"></script>
+</body>
+</html>
