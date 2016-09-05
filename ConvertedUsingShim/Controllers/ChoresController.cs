@@ -45,14 +45,14 @@ namespace ChoreApp.Controllers
 
         [Route("api/chores/complete")]
         [HttpPost]
-        public void Complete([FromForm]CompleteChorePayload value)
+        public void Complete([FromForm] CompleteChorePayload value)
         {
             Repo.CompleteChore(value);
         }
 
         [Route("api/chores/clear")]
         [HttpPost]
-        public void Clear([FromForm]CompleteChorePayload value)
+        public void Clear([FromForm] CompleteChorePayload value)
         {
             Repo.ClearChoreCompletion(value);
         }

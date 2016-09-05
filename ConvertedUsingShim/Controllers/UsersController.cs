@@ -1,7 +1,13 @@
+using ChoreApp.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
-using ChoreApp.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ChoreApp.Controllers
 {
@@ -44,5 +50,13 @@ namespace ChoreApp.Controllers
             Repo.DeleteUser(id);
         }
 
+        [Route("api/test")]
+        [HttpGet]
+        public HttpResponseMessage Test()
+        {
+            var resp =  new HttpResponseMessage(HttpStatusCode.OK);
+            resp.Content = new StringContent("Api Response");
+            return resp;
+        }
     }
 }
