@@ -1,44 +1,42 @@
+using ChoreApp.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using ChoreApp.Exceptions;
-using ChoreApp.Models;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using ChoreApp.Exceptions;
 
-namespace ChoreApp {
-    public class ChoreRepository 
+namespace ChoreApp
+{
+    public class ChoreRepository
     {
         private static int LOCK_TIMEOUT = 2 * 1000; //2 seconds
         private Dictionary<int, User> Users { get; set; }
         private Dictionary<int, Chore> Chores { get; set; }
         private Dictionary<int, CompletedChore> CompletedChores { get; set; }
-        
         private int MaxUserId;
         private int MaxChoreId;
-        private int MaxCompletedChoreId;        
+        private int MaxCompletedChoreId;
         private int WriteCount;
         private ReaderWriterLockSlim gl = new ReaderWriterLockSlim();
         private IHostingEnvironment HostingEnv;
-        //private static Lazy<ChoreRepository> _repo = new Lazy<ChoreRepository>();
+        
         public ChoreRepository(IHostingEnvironment env)
         {
             HostingEnv = env;
             WriteCount = 0;
             Users = new Dictionary<int, User>();
-            Chores = new Dictionary<int, Chore>();            
+            Chores = new Dictionary<int, Chore>();
             CompletedChores = new Dictionary<int, CompletedChore>();
             Initialize();
         }
-        /*
-        public static ChoreRepository GetInstance() {
-            return _repo.Value;
-        }*/
         private static bool IsDateMatch(DateTime left, DateTime right)
         {
             if (left.Year == right.Year && left.Month == right.Month && left.Day == right.Day)
@@ -161,7 +159,7 @@ namespace ChoreApp {
                 gl.ExitReadLock();
             }
         }
-        
+
         public User GetUser(int id)
         {
             if (!gl.TryEnterReadLock(LOCK_TIMEOUT))
@@ -193,7 +191,7 @@ namespace ChoreApp {
                 gl.ExitReadLock();
             }
         }
-        
+
         public void AddUser(User value)
         {
             if (String.IsNullOrWhiteSpace(value.Name))
@@ -610,5 +608,6 @@ namespace ChoreApp {
             }
             return true;
         }
+
     }
 }

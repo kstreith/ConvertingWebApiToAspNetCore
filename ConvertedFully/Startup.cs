@@ -31,18 +31,15 @@ namespace TestAspNetCore
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ChoreRepository, ChoreRepository>();
-            // Add framework services.
             var mvc = services.AddMvc(opt => {
                 opt.Filters.Add(new FakeResponseFilterAttribute());
                 opt.Filters.Add(new MakeSlowFilterAttribute());
                 opt.Filters.Add(new DataExceptionFilterAttribute());
             });
             mvc.AddJsonOptions(opt => {
-                var resolver  = opt.SerializerSettings.ContractResolver;
-                if (resolver != null)
-                {
-                    var res = resolver as DefaultContractResolver;
-                    res.NamingStrategy = null;  // <<!-- this removes the camelcasing
+                var res = opt.SerializerSettings.ContractResolver as DefaultContractResolver;
+                if (res != null) {
+                    res.NamingStrategy = null;
                 }
             });            
         }
@@ -53,7 +50,6 @@ namespace TestAspNetCore
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            //KIP - Need the .MapWebApiRoute
             app.UseMvc();
             app.UseDefaultFiles();
             app.UseStaticFiles();
